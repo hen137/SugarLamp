@@ -1,9 +1,10 @@
 idf_component_register(
-	SRCS
-	"main.c"
-	"wifi.c"
-	INCLUDE_DIRS
-	"."
+    SRCS
+        "main.c"
+        "wifi.c" 
+        "fetch.c"
+    INCLUDE_DIRS
+        "."
     REQUIRES 
         nvs_flash 
         esp_wifi 
