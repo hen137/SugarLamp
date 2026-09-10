@@ -25,25 +25,42 @@ menu "Example Configuration"
         help
             GPIO number for WS2812 LED strip control.
 
-    choice EXAMPLE_PROV_TRANSPORT
-        bool "Provisioning Transport"
-        default EXAMPLE_PROV_TRANSPORT_SOFTAP if IDF_TARGET_ESP32S2
-        default EXAMPLE_PROV_TRANSPORT_BLE
-        help
-            Wi-Fi provisioning component offers both, SoftAP and BLE transports. Choose any one.
+    # choice EXAMPLE_PROV_TRANSPORT
+    #     bool "Provisioning Transport"
+    #     default EXAMPLE_PROV_TRANSPORT_SOFTAP if IDF_TARGET_ESP32S2
+    #     default EXAMPLE_PROV_TRANSPORT_BLE
+    #     help
+    #         Wi-Fi provisioning component offers both, SoftAP and BLE transports. Choose any one.
 
-        config EXAMPLE_PROV_TRANSPORT_BLE
-            bool "BLE"
-            select BT_ENABLED
-            depends on !IDF_TARGET_ESP32S2
-            help
-                Use Bluetooth Low Energy for provisioning. Not available on ESP32-S2.
+    #     config EXAMPLE_PROV_TRANSPORT_BLE
+    #         bool "BLE"
+    #         select BT_ENABLED
+    #         depends on !IDF_TARGET_ESP32S2
+    #         help
+    #             Use Bluetooth Low Energy for provisioning. Not available on ESP32-S2.
 
-        config EXAMPLE_PROV_TRANSPORT_SOFTAP
-            bool "Soft AP"
-            select LWIP_IPV4
+    #     config EXAMPLE_PROV_TRANSPORT_SOFTAP
+    #         bool "Soft AP"
+    #         select LWIP_IPV4
+    #         help
+    #             Use SoftAP (Wi-Fi Access Point) for provisioning. Device creates its own Wi-Fi network.
+    # endchoice
+
+    choice NETWORK_MODE
+        bool "Network Mode"
+        default NETWORK_MODE_PROVISION
+        help 
+            Choose the network mode for the device. 
+        
+        config NETWORK_MODE_PROVISION
+            bool "PROVISION"
             help
-                Use SoftAP (Wi-Fi Access Point) for provisioning. Device creates its own Wi-Fi network.
+                Use this mode to provision the device with Wi-Fi credentials. The device will create a BLE network for provisioning.
+
+        config NETWORK_MODE_HARDCODE
+            bool "HARDCODED"
+            help
+                Uses hardcoded credentials for network access
     endchoice
 
 endmenu

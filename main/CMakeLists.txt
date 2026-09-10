@@ -4,5 +4,9 @@ idf_component_register(
 	"wifi.c"
 	INCLUDE_DIRS
 	"."
-	PRIV_REQUIRES esp_wifi
+    REQUIRES 
+        nvs_flash 
+        esp_wifi 
+        esp_http_client 
+        esp-tls
 )
