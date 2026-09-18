@@ -48,8 +48,52 @@ const int DEXCOM_MAX_MINUTES = 1440; // 24 hours
 const int DEXCOM_MAX_READINGS = 288;
 const float DEXCOM_MGDL_TO_MMOLL = 0.0555;
 
-// 
+typedef enum
+{
+    MGDL,
+    MMOLL,
+} glucose_units_t;
 
-void func(void);
+typedef enum
+{
+    US,
+    OUS,
+    JP,
+} region_t;
+
+typedef struct
+{
+    const char *username;
+    const char *account_id;
+    const char *password;
+    const region_t *region; // enum REGION
+} dexcom_config_t;
+
+typedef struct
+{
+    const char *session_id;
+    // const char *expires;
+    const char *application_id;
+    const char *base_url;
+} dexcom_handle_t;
+
+typedef struct
+{
+    float glucose_value;   // mg/dL
+    glucose_units_t units; // enum GLUCOSE_UNITS
+    // int trend_direction; // enum DEXCOM_TREND_DIRECTIONS
+    // const char *trend_description;
+    const char *timestamp; // ISO 8601 format
+} dexcom_glucose_reading_t;
+
+static char *_get_session_id(const char *account_id, const char *password, const region_t *region);
+
+static char *_get_application_id(const region_t *region);
+
+static char *_get_base_url(const region_t *region);
+
+dexcom_handle_t init_dexcom(const dexcom_config_t *config);
+
+dexcom_glucose_reading_t get_latest_glucose_reading(const dexcom_handle_t *handle);
 
 #endif // ESP_DEXCOM_H
