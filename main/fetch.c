@@ -1,11 +1,17 @@
 #include "esp_log.h"
 
 #include "esp_tls.h"
+// #include "esp_crt_bundle.h"
 #include "esp_http_client.h"
 
 #define MAX_HTTP_RECV_BUFFER 512
 #define MAX_HTTP_OUTPUT_BUFFER 2048
 static const char *HTTP_TAG = "HTTP_CLIENT";
+
+// Root Certificate for google.com (google_com_root_cert.pem)
+// openssl s_client -showcerts -connect www.google.com:443 </dev/null
+extern const char google_com_root_cert_pem_start[] asm("_binary_google_com_root_cert_pem_start");
+extern const char google_com_root_cert_pem_end[] asm("_binary_google_com_root_cert_pem_end");
 
 esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 {
@@ -119,18 +125,20 @@ void fetch()
     char local_response_buffer[MAX_HTTP_OUTPUT_BUFFER + 1] = {0};
 
     esp_http_client_config_t config = {
-        .url = "https://www.google.com",
+        .host = "www.google.com",
         .path = "/",
         // .query = "esp",
         .event_handler = _http_event_handler,
-        // .timeout_ms = 5000,
+        .timeout_ms = 5000,
         .user_data = local_response_buffer, // Pass address of local buffer to get response
         .disable_auto_redirect = true,
         .transport_type = HTTP_TRANSPORT_OVER_SSL,
+        .cert_pem = google_com_root_cert_pem_start,
+        // .crt_bundle_attach = esp_crt_bundle_attach,
     };
     ESP_LOGI(HTTP_TAG, "HTTP request with url =>");
     esp_http_client_handle_t client = esp_http_client_init(&config);
-
+    ESP_LOGD(HTTP_TAG, "HTTP Client Configured with host: %s, path: %s", config.host, config.path);
     esp_err_t err = esp_http_client_perform(client);
     if (err == ESP_OK)
     {
