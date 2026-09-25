@@ -88,9 +88,9 @@ typedef struct
 
 static char *_get_session_id(const char *account_id, const char *password, const region_t *region);
 
-static char *_get_application_id(const region_t *region);
+static const char *_get_application_id(const region_t *region);
 
-static char *_get_base_url(const region_t *region);
+static const char *_get_base_url(const region_t *region);
 
 dexcom_handle_t init_dexcom(const dexcom_config_t *config);
 

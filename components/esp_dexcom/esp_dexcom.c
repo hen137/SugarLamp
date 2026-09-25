@@ -7,6 +7,9 @@
 
 #include "esp_dexcom.h"
 
+#define MAX_HTTP_RECV_BUFFER 512
+#define MAX_HTTP_OUTPUT_BUFFER 2048
+
 static const char *DEXCOM_TAG = "dexcom";
 
 // Executes "Login" request to Dexcom Share API and returns session ID
@@ -27,29 +30,31 @@ static char *_get_session_id(const char *account_id, const char *password, const
     ESP_LOGI(DEXCOM_TAG, "HTTP request with url =>");
     esp_http_client_handle_t client = esp_http_client_init(&http_config);
 
-    const char *post_data;
+    char *post_data = malloc(256);
     sprintf(post_data, "{\"accountId\":\"%s\",\"password\":\"%s\",\"applicationId\":\"%s\"}", account_id, password, _get_application_id(region));
     esp_http_client_set_method(client, HTTP_METHOD_POST);
     esp_http_client_set_header(client, "Content-Type", "application/json");
     esp_http_client_set_post_field(client, post_data, strlen(post_data));
 
-    err = esp_http_client_perform(client);
+    esp_err_t err = esp_http_client_perform(client);
     if (err == ESP_OK)
     {
-        ESP_LOGI(TAG, "HTTP POST Status = %d, content_length = %" PRId64,
+        ESP_LOGI(DEXCOM_TAG, "HTTP POST Status = %d, content_length = %" PRId64,
                  esp_http_client_get_status_code(client),
                  esp_http_client_get_content_length(client));
     }
     else
     {
-        ESP_LOGE(TAG, "HTTP POST request failed: %s", esp_err_to_name(err));
+        ESP_LOGE(DEXCOM_TAG, "HTTP POST request failed: %s", esp_err_to_name(err));
     }
-    ESP_LOG_BUFFER_HEX(HTTP_TAG, local_response_buffer, strlen(local_response_buffer));
+    ESP_LOG_BUFFER_HEX(DEXCOM_TAG, local_response_buffer, strlen(local_response_buffer));
 
-    esp_http_client_cleanup(http_config);
+    esp_http_client_cleanup(client);
+
+    return strdup(local_response_buffer);
 }
 
-static char *_get_application_id(const region_t *region)
+static const char *_get_application_id(const region_t *region)
 {
     switch (*region)
     {
@@ -65,7 +70,7 @@ static char *_get_application_id(const region_t *region)
     }
 }
 
-static char *_get_base_url(const region_t *region)
+static const char *_get_base_url(const region_t *region)
 {
     switch (*region)
     {
@@ -94,10 +99,16 @@ dexcom_handle_t init_dexcom(const dexcom_config_t *config)
 
 dexcom_glucose_reading_t get_latest_glucose_reading(const dexcom_handle_t *handle)
 {
-    ESP_LOGI(DEXCOM_TAG, "Fetching latest glucose reading for session: %s", session->session_id);
+    ESP_LOGI(DEXCOM_TAG, "Fetching latest glucose reading for session: %s", handle->session_id);
     // Implementation for fetching the latest glucose reading
 
     // validate session
 
     // new session if expired/empty
+
+    return (dexcom_glucose_reading_t){
+        .glucose_value = 0.0f,
+        .units = MGDL,
+        .timestamp = NULL,
+    };
 }
