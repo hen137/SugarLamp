@@ -120,7 +120,7 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt)
     return ESP_OK;
 }
 
-void fetch()
+void fetch(void *pvParameters)
 {
     char local_response_buffer[MAX_HTTP_OUTPUT_BUFFER + 1] = {0};
 
@@ -151,4 +151,7 @@ void fetch()
         ESP_LOGE(HTTP_TAG, "HTTP GET request failed: %s", esp_err_to_name(err));
     }
     ESP_LOG_BUFFER_HEX(HTTP_TAG, local_response_buffer, strlen(local_response_buffer));
+    // ESP_LOG_BUFFER_CHAR(HTTP_TAG, local_response_buffer, strlen(local_response_buffer));
+
+    vTaskDelete(NULL);
 }

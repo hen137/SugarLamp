@@ -44,10 +44,5 @@ void app_main()
     /* Start Wi-Fi (Provisioning OR Hardcoded, depending on the state */
     app_wifi_start();
 
-    // while (1)
-    // {
-    //     fetch();
-    //     vTaskDelay(5000 / portTICK_PERIOD_MS); // Delay for 5 seconds
-    // }
-    fetch();
+    xTaskCreate(fetch, "fetch_task", 8192, NULL, 5, NULL);
 }
