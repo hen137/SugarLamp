@@ -3,4 +3,6 @@ idf_component_register(SRCS "esp_dexcom.c"
     REQUIRES 
         esp_http_client 
         esp-tls
+    EMBED_TXTFILES 
+        dexcom_share_root_cert.pem
 )
