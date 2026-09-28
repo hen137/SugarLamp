@@ -141,14 +141,9 @@ void fetch(void *pvParameters)
     esp_http_client_config_t config = {
         .host = "www.google.com",
         .path = "/",
-        // .query = "esp",
         .event_handler = _http_event_handler,
-        .timeout_ms = 5000,
-        .user_data = local_response_buffer, // Pass address of local buffer to get response
-        .disable_auto_redirect = true,
-        .transport_type = HTTP_TRANSPORT_OVER_SSL,
+        .user_data = local_response_buffer,
         .cert_pem = google_com_root_cert_pem_start,
-        // .crt_bundle_attach = esp_crt_bundle_attach,
     };
     esp_http_client_handle_t client = esp_http_client_init(&config);
     ESP_LOGD(HTTP_TAG, "HTTP Client Configured with host: %s, path: %s", config.host, config.path);

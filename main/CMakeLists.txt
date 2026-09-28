@@ -13,4 +13,3 @@ idf_component_register(
     EMBED_TXTFILES 
         google_com_root_cert.pem
 )
-# target_add_binary_data(${COMPONENT_TARGET} "google_com_root_cert.pem" TEXT)
