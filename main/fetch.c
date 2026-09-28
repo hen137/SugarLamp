@@ -8,11 +8,20 @@
 #define MAX_HTTP_OUTPUT_BUFFER 2048
 static const char *HTTP_TAG = "HTTP_CLIENT";
 
-// Root Certificate for google.com (google_com_root_cert.pem)
-// openssl s_client -showcerts -connect www.google.com:443 </dev/null
+/**
+ * @brief Root certificate for google.com
+ * 
+ * s_client -showcerts -connect www.google.com:443 </dev/null
+ */
 extern const char google_com_root_cert_pem_start[] asm("_binary_google_com_root_cert_pem_start");
 extern const char google_com_root_cert_pem_end[] asm("_binary_google_com_root_cert_pem_end");
 
+/**
+ * @brief HTTP event handler for the ESP HTTP client
+ * 
+ * @param evt Pointer to the HTTP client event structure
+ * @return esp_err_t ESP_OK if successful, otherwise an error code
+ */
 esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 {
     static char *output_buffer; // Buffer to store response of http request from event handler
@@ -120,6 +129,11 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt)
     return ESP_OK;
 }
 
+/**
+ * @brief Fetches data from a URL
+ * 
+ * @param pvParameters Pointer to the parameters for the task
+ */
 void fetch(void *pvParameters)
 {
     char local_response_buffer[MAX_HTTP_OUTPUT_BUFFER + 1] = {0};
@@ -136,7 +150,6 @@ void fetch(void *pvParameters)
         .cert_pem = google_com_root_cert_pem_start,
         // .crt_bundle_attach = esp_crt_bundle_attach,
     };
-    ESP_LOGI(HTTP_TAG, "HTTP request with url =>");
     esp_http_client_handle_t client = esp_http_client_init(&config);
     ESP_LOGD(HTTP_TAG, "HTTP Client Configured with host: %s, path: %s", config.host, config.path);
     esp_err_t err = esp_http_client_perform(client);
