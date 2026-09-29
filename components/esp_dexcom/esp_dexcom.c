@@ -7,10 +7,25 @@
 
 #include "esp_dexcom.h"
 
-#define MAX_HTTP_RECV_BUFFER 512
 #define MAX_HTTP_OUTPUT_BUFFER 2048
 
 static const char *DEXCOM_TAG = "dexcom";
+
+const char DEXCOM_APPLICATION_ID_US[] = "d89443d2-327c-4a6f-89e5-496bbb0317db";
+const char DEXCOM_APPLICATION_ID_OUS[] = "d89443d2-327c-4a6f-89e5-496bbb0317db";
+const char DEXCOM_APPLICATION_ID_JP[] = "d8665ade-9673-4e27-9ff6-92db4ce13d13";
+
+const char DEXCOM_BASE_URL[] = "share2.dexcom.com/ShareWebServices/Services/";
+const char DEXCOM_BASE_URL_OUS[] = "shareous1.dexcom.com/ShareWebServices/Services/";
+const char DEXCOM_BASE_URL_JP[] = "share.dexcom.jp/ShareWebServices/Services/";
+
+const char DEXCOM_LOGIN_ID_ENDPOINT[] = "General/LoginPublisherAccountById";
+const char DEXCOM_AUTHENTICATE_ENDPOINT[] = "General/AuthenticatePublisherAccount";
+const char DEXCOM_GLUCOSE_READINGS_ENDPOINT[] = "Publisher/ReadPublisherLatestGlucoseValues";
+
+const int DEXCOM_MAX_MINUTES = 1440; // 24 hours
+const int DEXCOM_MAX_READINGS = 288;
+const float DEXCOM_MGDL_TO_MMOLL = 0.0555;
 
 static esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 {
@@ -120,7 +135,7 @@ static esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 }
 
 // Executes "Login" request to Dexcom Share API and returns session ID
-static char *_get_session_id(const char *account_id, const char *password, const region_t *region)
+static char *_get_session_id(char *account_id, char *password, enum REGIONS region)
 {
     char local_response_buffer[MAX_HTTP_OUTPUT_BUFFER + 1] = {0};
 
@@ -137,6 +152,7 @@ static char *_get_session_id(const char *account_id, const char *password, const
     char *post_data = malloc(256);
     sprintf(post_data, "{\"accountId\":\"%s\",\"password\":\"%s\",\"applicationId\":\"%s\"}", account_id, password, _get_application_id(region));
     esp_http_client_set_method(client, HTTP_METHOD_POST);
+    esp_http_client_set_header(client, "Accept-Encoding", "application/json");
     esp_http_client_set_header(client, "Content-Type", "application/json");
     esp_http_client_set_post_field(client, post_data, strlen(post_data));
 
@@ -158,25 +174,25 @@ static char *_get_session_id(const char *account_id, const char *password, const
     return strdup(local_response_buffer);
 }
 
-static const char *_get_application_id(const region_t *region)
+static const char *_get_application_id(enum REGIONS region)
 {
-    switch (*region)
+    switch (region)
     {
     case US:
-        return DEXCOM_APPLICATION_ID_US; // Example application ID for US
+        return DEXCOM_APPLICATION_ID_US;
     case OUS:
-        return DEXCOM_APPLICATION_ID_OUS; // Example application ID for OUS
+        return DEXCOM_APPLICATION_ID_OUS;
     case JP:
-        return DEXCOM_APPLICATION_ID_JP; // Example application ID for JP
+        return DEXCOM_APPLICATION_ID_JP;
     default:
         ESP_LOGE(DEXCOM_TAG, "Invalid region specified");
         return NULL;
     }
 }
 
-static const char *_get_base_url(const region_t *region)
+static const char *_get_base_url(enum REGIONS region)
 {
-    switch (*region)
+    switch (region)
     {
     case US:
         return DEXCOM_BASE_URL;
@@ -190,9 +206,65 @@ static const char *_get_base_url(const region_t *region)
     }
 }
 
-dexcom_handle_t init_dexcom(const dexcom_config_t *config)
+static void _post(char *url, char *params, char *post_data)
+{
+    char local_response_buffer[MAX_HTTP_OUTPUT_BUFFER + 1] = {0};
+
+    esp_http_client_config_t config = {
+        .url = url,
+        .query = params,
+        .event_handler = _http_event_handler,
+        .user_data = local_response_buffer,
+        .cert_pem = dexcom_share_root_cert_pem_start,
+    };
+    esp_http_client_handle_t http_client = esp_http_client_init(&config);
+
+    ESP_LOGD(DEXCOM_TAG, "HTTP Client Configured with url: %s", url);
+
+    esp_http_client_set_method(http_client, HTTP_METHOD_POST);
+    esp_http_client_set_header(http_client, "Accept-Encoding", "application/json");
+    esp_http_client_set_header(http_client, "Content-Type", "application/json");
+    esp_http_client_set_post_field(http_client, post_data, strlen(post_data));
+
+    esp_err_t err = esp_http_client_perform(http_client);
+
+    if (err == ESP_OK)
+    {
+        ESP_LOGI(DEXCOM_TAG, "HTTP POST Status = %d, content_length = %" PRId64,
+                 esp_http_client_get_status_code(http_client),
+                 esp_http_client_get_content_length(http_client));
+    }
+    else
+    {
+        ESP_LOGE(DEXCOM_TAG, "HTTP POST request failed: %s", esp_err_to_name(err));
+    }
+
+    ESP_LOG_BUFFER_CHAR(DEXCOM_TAG, local_response_buffer, strlen(local_response_buffer));
+
+    esp_http_client_cleanup(http_client);
+}
+
+float convert_mgdl_to_mmoll(float mgdl)
+{
+    return mgdl * DEXCOM_MGDL_TO_MMOLL;
+}
+
+float convert_mmoll_to_mgdl(float mmoll)
+{
+    return mmoll / DEXCOM_MGDL_TO_MMOLL;
+}
+
+dexcom_handle_t init_dexcom(dexcom_config_t *config)
 {
     ESP_LOGI(DEXCOM_TAG, "Initializing Dexcom session for user: %s", config->username);
+
+    char *url = malloc(256);
+    sprintf(url, "https://%s%s", _get_base_url(config->region), DEXCOM_LOGIN_ID_ENDPOINT);
+
+    char *login_params = malloc(256);
+    sprintf(login_params, "accountId=%s&password=%s&applicationId=%s", config->account_id, config->password, _get_application_id(config->region));
+
+    _post(url, login_params, NULL);
 
     return (dexcom_handle_t){
         .session_id = _get_session_id(config->account_id, config->password, config->region),
@@ -201,7 +273,7 @@ dexcom_handle_t init_dexcom(const dexcom_config_t *config)
     };
 }
 
-dexcom_glucose_reading_t get_latest_glucose_reading(const dexcom_handle_t *handle)
+dexcom_glucose_reading_t get_latest_glucose_reading(dexcom_handle_t *handle, int minutes, int max_count)
 {
     ESP_LOGI(DEXCOM_TAG, "Fetching latest glucose reading for session: %s", handle->session_id);
     // Implementation for fetching the latest glucose reading
@@ -210,9 +282,36 @@ dexcom_glucose_reading_t get_latest_glucose_reading(const dexcom_handle_t *handl
 
     // new session if expired/empty
 
+    char *url = malloc(256);
+    sprintf(url, "https://%s%s", handle->base_url, DEXCOM_GLUCOSE_READINGS_ENDPOINT);
+
+    char *post_data = malloc(256);
+    sprintf(post_data, "{\"sessionId\":\"%s\",\"minutes\":\"%d\",\"maxCount\":\"%d\"}", handle->session_id, minutes, max_count);
+    
+    _post(url, NULL, post_data);
+
     return (dexcom_glucose_reading_t){
         .glucose_value = 0.0f,
         .units = MGDL,
+        .trend_direction = None,
+        .trend_description = NoDesc,
         .timestamp = NULL,
     };
+}
+
+void dexcom_fetch(void *pvParameters)
+{
+    char *account_id = "your_account_id";
+    char *password = "your_password";
+    enum REGIONS region = US;
+
+    char *url = malloc(256);
+    sprintf(url, "https://%s%s", _get_base_url(region), DEXCOM_LOGIN_ID_ENDPOINT);
+
+    char *post_data = malloc(256);
+    sprintf(post_data, "{\"accountId\":\"%s\",\"password\":\"%s\",\"applicationId\":\"%s\"}", account_id, password, _get_application_id(region));
+    
+    _post(url, NULL, post_data);
+
+    vTaskDelete(NULL);
 }
