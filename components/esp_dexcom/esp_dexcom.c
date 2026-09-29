@@ -219,8 +219,6 @@ static void _post(char *url, char *params, char *post_data)
     };
     esp_http_client_handle_t http_client = esp_http_client_init(&config);
 
-    ESP_LOGD(DEXCOM_TAG, "HTTP Client Configured with url: %s", url);
-
     esp_http_client_set_method(http_client, HTTP_METHOD_POST);
     esp_http_client_set_header(http_client, "Accept-Encoding", "application/json");
     esp_http_client_set_header(http_client, "Content-Type", "application/json");
@@ -266,6 +264,9 @@ dexcom_handle_t init_dexcom(dexcom_config_t *config)
 
     _post(url, login_params, NULL);
 
+    free(url);
+    free(login_params);
+
     return (dexcom_handle_t){
         .session_id = _get_session_id(config->account_id, config->password, config->region),
         .application_id = _get_application_id(config->region),
@@ -290,6 +291,9 @@ dexcom_glucose_reading_t get_latest_glucose_reading(dexcom_handle_t *handle, int
     
     _post(url, NULL, post_data);
 
+    free(url);
+    free(post_data);
+
     return (dexcom_glucose_reading_t){
         .glucose_value = 0.0f,
         .units = MGDL,
@@ -312,6 +316,9 @@ void dexcom_fetch(void *pvParameters)
     sprintf(post_data, "{\"accountId\":\"%s\",\"password\":\"%s\",\"applicationId\":\"%s\"}", account_id, password, _get_application_id(region));
     
     _post(url, NULL, post_data);
+
+    free(url);
+    free(post_data);
 
     vTaskDelete(NULL);
 }
