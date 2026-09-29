@@ -151,6 +151,15 @@ extern "C"
     static const char *_get_base_url(enum REGIONS region);
 
     /**
+     * @brief Executes a POST request to the specified URL with the given parameters and post data
+     *
+     * @param url
+     * @param params
+     * @param post_data
+     */
+    static void _post(char *url, char *params, char *post_data);
+
+    /**
      * @brief Converts glucose values from mg/dL to mmol/L
      *
      * @param mgdl

@@ -137,41 +137,20 @@ static esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 // Executes "Login" request to Dexcom Share API and returns session ID
 static char *_get_session_id(char *account_id, char *password, enum REGIONS region)
 {
-    char local_response_buffer[MAX_HTTP_OUTPUT_BUFFER + 1] = {0};
-
-    esp_http_client_config_t http_config = {
-        .url = _get_base_url(region),
-        .path = DEXCOM_LOGIN_ID_ENDPOINT,
-        .event_handler = _http_event_handler,
-        .user_data = local_response_buffer,
-        .cert_pem = dexcom_share_root_cert_pem_start,
-    };
-    ESP_LOGI(DEXCOM_TAG, "HTTP request with url =>");
-    esp_http_client_handle_t client = esp_http_client_init(&http_config);
+    char *url = malloc(256);
+    sprintf(url, "https://%s%s", _get_base_url(region), DEXCOM_LOGIN_ID_ENDPOINT);
 
     char *post_data = malloc(256);
     sprintf(post_data, "{\"accountId\":\"%s\",\"password\":\"%s\",\"applicationId\":\"%s\"}", account_id, password, _get_application_id(region));
-    esp_http_client_set_method(client, HTTP_METHOD_POST);
-    esp_http_client_set_header(client, "Accept-Encoding", "application/json");
-    esp_http_client_set_header(client, "Content-Type", "application/json");
-    esp_http_client_set_post_field(client, post_data, strlen(post_data));
+    
+    // TODO: handle response -> extract session ID
+    _post(url, NULL, post_data);
 
-    esp_err_t err = esp_http_client_perform(client);
-    if (err == ESP_OK)
-    {
-        ESP_LOGI(DEXCOM_TAG, "HTTP POST Status = %d, content_length = %" PRId64,
-                 esp_http_client_get_status_code(client),
-                 esp_http_client_get_content_length(client));
-    }
-    else
-    {
-        ESP_LOGE(DEXCOM_TAG, "HTTP POST request failed: %s", esp_err_to_name(err));
-    }
-    ESP_LOG_BUFFER_HEX(DEXCOM_TAG, local_response_buffer, strlen(local_response_buffer));
+    free(url);
+    free(post_data);
 
-    esp_http_client_cleanup(client);
-
-    return strdup(local_response_buffer);
+    // For demonstration purposes, returning a dummy session ID
+    return strdup("dummy_session_id");
 }
 
 static const char *_get_application_id(enum REGIONS region)
@@ -255,17 +234,6 @@ float convert_mmoll_to_mgdl(float mmoll)
 dexcom_handle_t init_dexcom(dexcom_config_t *config)
 {
     ESP_LOGI(DEXCOM_TAG, "Initializing Dexcom session for user: %s", config->username);
-
-    char *url = malloc(256);
-    sprintf(url, "https://%s%s", _get_base_url(config->region), DEXCOM_LOGIN_ID_ENDPOINT);
-
-    char *login_params = malloc(256);
-    sprintf(login_params, "accountId=%s&password=%s&applicationId=%s", config->account_id, config->password, _get_application_id(config->region));
-
-    _post(url, login_params, NULL);
-
-    free(url);
-    free(login_params);
 
     return (dexcom_handle_t){
         .session_id = _get_session_id(config->account_id, config->password, config->region),
