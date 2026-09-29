@@ -182,7 +182,7 @@ extern "C"
      */
     dexcom_glucose_reading_t get_latest_glucose_reading(dexcom_handle_t *handle, int minutes, int max_count);
 
-    void dexcom_fetch(void *pvParameters);
+    void dummy_fetch();
 
 #ifdef __cplusplus
 }

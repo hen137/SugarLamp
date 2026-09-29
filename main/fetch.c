@@ -3,13 +3,15 @@
 #include "esp_tls.h"
 #include "esp_http_client.h"
 
+#include "esp_dexcom.h"
+
 #define MAX_HTTP_RECV_BUFFER 512
 #define MAX_HTTP_OUTPUT_BUFFER 2048
 static const char *HTTP_TAG = "HTTP_CLIENT";
 
 /**
  * @brief Root certificate for google.com
- * 
+ *
  * s_client -showcerts -connect www.google.com:443 </dev/null
  */
 extern const char google_com_root_cert_pem_start[] asm("_binary_google_com_root_cert_pem_start");
@@ -17,7 +19,7 @@ extern const char google_com_root_cert_pem_end[] asm("_binary_google_com_root_ce
 
 /**
  * @brief HTTP event handler for the ESP HTTP client
- * 
+ *
  * @param evt Pointer to the HTTP client event structure
  * @return esp_err_t ESP_OK if successful, otherwise an error code
  */
@@ -130,7 +132,7 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 
 /**
  * @brief Fetches data from a URL
- * 
+ *
  * @param pvParameters Pointer to the parameters for the task
  */
 void fetch(void *pvParameters)
@@ -159,6 +161,34 @@ void fetch(void *pvParameters)
     }
     ESP_LOG_BUFFER_HEX(HTTP_TAG, local_response_buffer, strlen(local_response_buffer));
     // ESP_LOG_BUFFER_CHAR(HTTP_TAG, local_response_buffer, strlen(local_response_buffer));
+
+    vTaskDelete(NULL);
+}
+
+/**
+ * @brief Fetches Dexcom glucose readings
+ *
+ * @param pvParameters Pointer to the parameters for the task
+ */
+void dexcom_fetch(void *pvParameters)
+{
+    dummy_fetch();
+
+    // dexcom_config_t config = {
+    //     .username = "your_username",
+    //     .account_id = "your_account_id",
+    //     .password = "your_password",
+    //     .region = US,
+    // };
+    // dexcom_handle_t handle = init_dexcom(&config);
+
+    // dexcom_glucose_reading_t reading = get_latest_glucose_reading(&handle, 10, 1);
+    // ESP_LOGI(MAIN_TAG, "Latest glucose reading: %.2f %s, Trend: %d, Description: %d, Timestamp: %s",
+    //          reading.glucose_value,
+    //          reading.units == MGDL ? "mg/dL" : "mmol/L",
+    //          reading.trend_direction,
+    //          reading.trend_description,
+    //          reading.timestamp);
 
     vTaskDelete(NULL);
 }

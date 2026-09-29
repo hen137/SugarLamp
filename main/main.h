@@ -5,3 +5,4 @@ esp_err_t app_wifi_init(void);
 esp_err_t app_wifi_start(void);
 
 void fetch(void *pvParameters);
+void dexcom_fetch(void *pvParameters);

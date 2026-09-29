@@ -303,7 +303,7 @@ dexcom_glucose_reading_t get_latest_glucose_reading(dexcom_handle_t *handle, int
     };
 }
 
-void dexcom_fetch(void *pvParameters)
+void dummy_fetch()
 {
     char *account_id = "your_account_id";
     char *password = "your_password";
@@ -319,6 +319,4 @@ void dexcom_fetch(void *pvParameters)
 
     free(url);
     free(post_data);
-
-    vTaskDelete(NULL);
 }

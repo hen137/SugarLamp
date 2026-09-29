@@ -8,8 +8,6 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#include "esp_dexcom.h"
-
 #include "main.h"
 
 static const char *TAG = "app_main";
@@ -40,6 +38,5 @@ void app_main()
 
     app_wifi_start();
 
-    // xTaskCreate(fetch, "fetch_task", 8192, NULL, 5, NULL);
     xTaskCreate(dexcom_fetch, "fetch_task", 8192, NULL, 5, NULL);
 }
