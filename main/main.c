@@ -10,7 +10,7 @@
 
 #include "main.h"
 
-static const char *TAG = "app_main";
+static const char *MAIN_TAG = "app_main";
 
 void init_NVS()
 {
@@ -26,7 +26,7 @@ void init_NVS()
     }
     if (ret != ESP_OK)
     {
-        ESP_LOGE(TAG, "Failed to init NVS");
+        ESP_LOGE(MAIN_TAG, "Failed to init NVS");
         return;
     }
 }
