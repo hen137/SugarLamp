@@ -5,8 +5,10 @@
 
 #include "nvs_flash.h"
 
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+
+#include "esp_dexcom.h"
 
 #include "main.h"
 
@@ -33,16 +35,11 @@ void init_NVS()
 
 void app_main()
 {
-    // app_driver_init();
-
-    /* Initialize NVS partition */
     init_NVS();
-
-    /* Initialise Wi-Fi */
     app_wifi_init();
 
-    /* Start Wi-Fi (Provisioning OR Hardcoded, depending on the state */
     app_wifi_start();
 
-    xTaskCreate(fetch, "fetch_task", 8192, NULL, 5, NULL);
+    // xTaskCreate(fetch, "fetch_task", 8192, NULL, 5, NULL);
+    xTaskCreate(dexcom_fetch, "fetch_task", 8192, NULL, 5, NULL);
 }
