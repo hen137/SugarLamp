@@ -170,25 +170,3 @@ void fetch(void *pvParameters)
  *
  * @param pvParameters Pointer to the parameters for the task
  */
-void dexcom_fetch(void *pvParameters)
-{
-    dummy_fetch();
-
-    // dexcom_config_t config = {
-    //     .username = "your_username",
-    //     .account_id = "your_account_id",
-    //     .password = "your_password",
-    //     .region = US,
-    // };
-    // dexcom_handle_t handle = init_dexcom(&config);
-
-    // dexcom_glucose_reading_t reading = get_latest_glucose_reading(&handle, 10, 1);
-    // ESP_LOGI(MAIN_TAG, "Latest glucose reading: %.2f %s, Trend: %d, Description: %d, Timestamp: %s",
-    //          reading.glucose_value,
-    //          reading.units == MGDL ? "mg/dL" : "mmol/L",
-    //          reading.trend_direction,
-    //          reading.trend_description,
-    //          reading.timestamp);
-
-    vTaskDelete(NULL);
-}
