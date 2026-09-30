@@ -6,7 +6,7 @@ dependencies:
       require: private
       version: '>=5.0'
     source:
-      registry_url: https://components.espressif.com
+      registry_url: https://components.espressif.com/
       type: service
     version: 1.7.19~2
   espressif/network_provisioning:
@@ -37,8 +37,9 @@ dependencies:
       type: idf
     version: 6.1.0
 direct_dependencies:
+- espressif/cjson
 - espressif/network_provisioning
 - espressif/qrcode
-manifest_hash: 9b51d69ff19591124ff1d985bdff07ab49d286b539e37e58f5763fc885ae0c61
+manifest_hash: f99e82b78ab1e7184d7751c3cf5b7d66e7395d2574969e5a92d87588a646454a
 target: esp32c3
 version: 3.0.0

@@ -5,6 +5,8 @@
 #include "esp_tls.h"
 #include "esp_http_client.h"
 
+#include "cJSON.h"
+
 #include "esp_dexcom.h"
 
 #define MAX_HTTP_OUTPUT_BUFFER 2048
