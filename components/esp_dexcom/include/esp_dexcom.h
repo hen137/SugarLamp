@@ -106,9 +106,9 @@ extern "C"
      */
     typedef struct
     {
-        char *session_id;                     /*!< Session ID for Dexcom services */
-        const char *application_id;           /*!< Application ID for Dexcom services */
-        const char *base_url;                 /*!< Base URL for Dexcom services */
+        char *session_id;           /*!< Session ID for Dexcom services */
+        const char *application_id; /*!< Application ID for Dexcom services */
+        const char *base_url;       /*!< Base URL for Dexcom services */
     } dexcom_handle_t;
 
     /**
@@ -156,8 +156,9 @@ extern "C"
      * @param url
      * @param params
      * @param post_data
+     * @return char*
      */
-    static void _post(char *url, char *params, char *post_data);
+    static char *_post(char *url, char *params, char *post_data);
 
     /**
      * @brief Converts glucose values from mg/dL to mmol/L

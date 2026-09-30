@@ -10,6 +10,7 @@
 #include "esp_dexcom.h"
 
 #define MAX_HTTP_OUTPUT_BUFFER 2048
+#define BUFFER_SIZE 256
 
 static const char *DEXCOM_TAG = "dexcom";
 
@@ -139,20 +140,19 @@ static esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 // Executes "Login" request to Dexcom Share API and returns session ID
 static char *_get_session_id(char *account_id, char *password, enum REGIONS region)
 {
-    char *url = malloc(256);
+    char *url = malloc(BUFFER_SIZE);
     sprintf(url, "https://%s%s", _get_base_url(region), DEXCOM_LOGIN_ID_ENDPOINT);
 
-    char *post_data = malloc(256);
+    char *post_data = malloc(BUFFER_SIZE);
     sprintf(post_data, "{\"accountId\":\"%s\",\"password\":\"%s\",\"applicationId\":\"%s\"}", account_id, password, _get_application_id(region));
-    
-    // TODO: handle response -> extract session ID
-    _post(url, NULL, post_data);
+
+    // TODO: extract session ID
+    char *response = _post(url, NULL, post_data);
 
     free(url);
     free(post_data);
 
-    // For demonstration purposes, returning a dummy session ID
-    return strdup("dummy_session_id");
+    return response;
 }
 
 static const char *_get_application_id(enum REGIONS region)
@@ -187,7 +187,7 @@ static const char *_get_base_url(enum REGIONS region)
     }
 }
 
-static void _post(char *url, char *params, char *post_data)
+static char *_post(char *url, char *params, char *post_data)
 {
     char local_response_buffer[MAX_HTTP_OUTPUT_BUFFER + 1] = {0};
 
@@ -218,9 +218,9 @@ static void _post(char *url, char *params, char *post_data)
         ESP_LOGE(DEXCOM_TAG, "HTTP POST request failed: %s", esp_err_to_name(err));
     }
 
-    ESP_LOG_BUFFER_CHAR(DEXCOM_TAG, local_response_buffer, strlen(local_response_buffer));
-
     esp_http_client_cleanup(http_client);
+
+    return strdup(local_response_buffer);
 }
 
 float convert_mgdl_to_mmoll(float mgdl)
@@ -247,18 +247,16 @@ dexcom_handle_t init_dexcom(dexcom_config_t *config)
 dexcom_glucose_reading_t get_latest_glucose_reading(dexcom_handle_t *handle, int minutes, int max_count)
 {
     ESP_LOGI(DEXCOM_TAG, "Fetching latest glucose reading for session: %s", handle->session_id);
-    // Implementation for fetching the latest glucose reading
-
+    
     // validate session
-
     // new session if expired/empty
 
-    char *url = malloc(256);
+    char *url = malloc(BUFFER_SIZE);
     sprintf(url, "https://%s%s", handle->base_url, DEXCOM_GLUCOSE_READINGS_ENDPOINT);
 
-    char *post_data = malloc(256);
+    char *post_data = malloc(BUFFER_SIZE);
     sprintf(post_data, "{\"sessionId\":\"%s\",\"minutes\":\"%d\",\"maxCount\":\"%d\"}", handle->session_id, minutes, max_count);
-    
+
     _post(url, NULL, post_data);
 
     free(url);
@@ -279,13 +277,15 @@ void dummy_fetch()
     char *password = "your_password";
     enum REGIONS region = US;
 
-    char *url = malloc(256);
+    char *url = malloc(BUFFER_SIZE);
     sprintf(url, "https://%s%s", _get_base_url(region), DEXCOM_LOGIN_ID_ENDPOINT);
 
-    char *post_data = malloc(256);
+    char *post_data = malloc(BUFFER_SIZE);
     sprintf(post_data, "{\"accountId\":\"%s\",\"password\":\"%s\",\"applicationId\":\"%s\"}", account_id, password, _get_application_id(region));
-    
-    _post(url, NULL, post_data);
+
+    char *response = _post(url, NULL, post_data);
+
+    ESP_LOG_BUFFER_CHAR(DEXCOM_TAG, response, strlen(response));
 
     free(url);
     free(post_data);
