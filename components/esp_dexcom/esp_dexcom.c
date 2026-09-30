@@ -14,17 +14,17 @@
 
 static const char *DEXCOM_TAG = "dexcom";
 
-const char DEXCOM_APPLICATION_ID_US[] = "d89443d2-327c-4a6f-89e5-496bbb0317db";
-const char DEXCOM_APPLICATION_ID_OUS[] = "d89443d2-327c-4a6f-89e5-496bbb0317db";
-const char DEXCOM_APPLICATION_ID_JP[] = "d8665ade-9673-4e27-9ff6-92db4ce13d13";
+const char *DEXCOM_APPLICATION_ID_US = "d89443d2-327c-4a6f-89e5-496bbb0317db";
+const char *DEXCOM_APPLICATION_ID_OUS = "d89443d2-327c-4a6f-89e5-496bbb0317db";
+const char *DEXCOM_APPLICATION_ID_JP = "d8665ade-9673-4e27-9ff6-92db4ce13d13";
 
-const char DEXCOM_BASE_URL[] = "share2.dexcom.com/ShareWebServices/Services/";
-const char DEXCOM_BASE_URL_OUS[] = "shareous1.dexcom.com/ShareWebServices/Services/";
-const char DEXCOM_BASE_URL_JP[] = "share.dexcom.jp/ShareWebServices/Services/";
+const char *DEXCOM_BASE_URL = "share2.dexcom.com/ShareWebServices/Services/";
+const char *DEXCOM_BASE_URL_OUS = "shareous1.dexcom.com/ShareWebServices/Services/";
+const char *DEXCOM_BASE_URL_JP = "share.dexcom.jp/ShareWebServices/Services/";
 
-const char DEXCOM_LOGIN_ID_ENDPOINT[] = "General/LoginPublisherAccountById";
-const char DEXCOM_AUTHENTICATE_ENDPOINT[] = "General/AuthenticatePublisherAccount";
-const char DEXCOM_GLUCOSE_READINGS_ENDPOINT[] = "Publisher/ReadPublisherLatestGlucoseValues";
+const char *DEXCOM_LOGIN_ID_ENDPOINT = "General/LoginPublisherAccountById";
+const char *DEXCOM_AUTHENTICATE_ENDPOINT = "General/AuthenticatePublisherAccount";
+const char *DEXCOM_GLUCOSE_READINGS_ENDPOINT = "Publisher/ReadPublisherLatestGlucoseValues";
 
 const int DEXCOM_MAX_MINUTES = 1440; // 24 hours
 const int DEXCOM_MAX_READINGS = 288;
@@ -32,8 +32,8 @@ const float DEXCOM_MGDL_TO_MMOLL = 0.0555;
 
 static esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 {
-    static char *output_buffer; // Buffer to store response of http request from event handler
-    static int output_len;      // Stores number of bytes read
+    char *output_buffer; // Buffer to store response of http request from event handler
+    int output_len;      // Stores number of bytes read
     switch (evt->event_id)
     {
     case HTTP_EVENT_ERROR:
@@ -138,7 +138,7 @@ static esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 }
 
 // Executes "Login" request to Dexcom Share API and returns session ID
-static char *_get_session_id(char *account_id, char *password, enum REGIONS region)
+char *_get_session_id(char *account_id, char *password, enum REGIONS region)
 {
     char *url = malloc(BUFFER_SIZE);
     sprintf(url, "https://%s%s", _get_base_url(region), DEXCOM_LOGIN_ID_ENDPOINT);
@@ -155,7 +155,7 @@ static char *_get_session_id(char *account_id, char *password, enum REGIONS regi
     return response;
 }
 
-static const char *_get_application_id(enum REGIONS region)
+const char *_get_application_id(enum REGIONS region)
 {
     switch (region)
     {
@@ -171,7 +171,7 @@ static const char *_get_application_id(enum REGIONS region)
     }
 }
 
-static const char *_get_base_url(enum REGIONS region)
+const char *_get_base_url(enum REGIONS region)
 {
     switch (region)
     {
@@ -187,7 +187,7 @@ static const char *_get_base_url(enum REGIONS region)
     }
 }
 
-static char *_post(char *url, char *params, char *post_data)
+char *_post(char *url, char *params, char *post_data)
 {
     char local_response_buffer[MAX_HTTP_OUTPUT_BUFFER + 1] = {0};
 

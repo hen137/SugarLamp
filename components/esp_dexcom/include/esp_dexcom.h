@@ -15,17 +15,17 @@ extern "C"
 
     // Dexcom Share API
 
-    extern const char DEXCOM_APPLICATION_ID_US[];
-    extern const char DEXCOM_APPLICATION_ID_OUS[];
-    extern const char DEXCOM_APPLICATION_ID_JP[];
+    extern const char *DEXCOM_APPLICATION_ID_US;
+    extern const char *DEXCOM_APPLICATION_ID_OUS;
+    extern const char *DEXCOM_APPLICATION_ID_JP;
 
-    extern const char DEXCOM_BASE_URL[];
-    extern const char DEXCOM_BASE_URL_OUS[];
-    extern const char DEXCOM_BASE_URL_JP[];
+    extern const char *DEXCOM_BASE_URL;
+    extern const char *DEXCOM_BASE_URL_OUS;
+    extern const char *DEXCOM_BASE_URL_JP;
 
-    extern const char DEXCOM_LOGIN_ID_ENDPOINT[];
-    extern const char DEXCOM_AUTHENTICATE_ENDPOINT[];
-    extern const char DEXCOM_GLUCOSE_READINGS_ENDPOINT[];
+    extern const char *DEXCOM_LOGIN_ID_ENDPOINT;
+    extern const char *DEXCOM_AUTHENTICATE_ENDPOINT;
+    extern const char *DEXCOM_GLUCOSE_READINGS_ENDPOINT;
 
     /**
      * @brief Enumerates the trend directions for Dexcom glucose readings
@@ -132,7 +132,7 @@ extern "C"
      * @param region
      * @return char*
      */
-    static char *_get_session_id(char *account_id, char *password, enum REGIONS region);
+    char *_get_session_id(char *account_id, char *password, enum REGIONS region);
 
     /**
      * @brief Gets the application ID for a Dexcom region
@@ -140,7 +140,7 @@ extern "C"
      * @param region
      * @return const char*
      */
-    static const char *_get_application_id(enum REGIONS region);
+    const char *_get_application_id(enum REGIONS region);
 
     /**
      * @brief Gets the base URL for a Dexcom region
@@ -148,7 +148,7 @@ extern "C"
      * @param region
      * @return const char*
      */
-    static const char *_get_base_url(enum REGIONS region);
+    const char *_get_base_url(enum REGIONS region);
 
     /**
      * @brief Executes a POST request to the specified URL with the given parameters and post data
@@ -158,7 +158,7 @@ extern "C"
      * @param post_data
      * @return char*
      */
-    static char *_post(char *url, char *params, char *post_data);
+    char *_post(char *url, char *params, char *post_data);
 
     /**
      * @brief Converts glucose values from mg/dL to mmol/L
